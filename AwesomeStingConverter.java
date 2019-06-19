@@ -6,7 +6,7 @@ enum FromStatus
 	STR, BIN, DEC, HEX
 }
 
-class AwesomeStringConverter
+public class AwesomeStringConverter
 {	
 	private String encoding = "UTF-8";
 	private int bufferSize = 65536;
