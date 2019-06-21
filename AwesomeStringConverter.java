@@ -81,7 +81,7 @@ public class AwesomeStringConverter
                     int i = 0;
                     while(tokenizer.hasMoreTokens())
                     {
-                        bytes[i] = Byte.parseByte(tokenizer.nextToken(), 16);
+                        bytes[i] = (byte)Integer.parseInt(tokenizer.nextToken(), 16);
                         i++;
                     }
                     return new String(bytes, encoding);
