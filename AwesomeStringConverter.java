@@ -12,34 +12,54 @@ public class AwesomeStringConverter
     private int bufferSize = 65536;
     private int bytesSize = 65536;
 
+    private static final String ERROR = "잘못된 형식입니다.";
+    private boolean debuggingMode = false;
+
     private FromStatus from = FromStatus.NULL;
 
     private String source = "";
 
-    String getEncoding()
+    public boolean isDebuggingMode()
+    {
+        return debuggingMode;
+    }
+    public void setDebuggingMode()
+    {
+        debuggingMode = true;
+    }
+    public void unsetDebugginMode()
+    {
+        debuggingMode = false;
+    }
+
+    public String getEncoding()
     {
         return encoding;
     }
-    void setUtf8()
+    public void setUtf8()
     {
         setEncoding("UTF-8");
     }
-    void setUtf16()
+    public void setUtf16()
     {
         setEncoding("UTF-16");
     }
-    void setUtf32()
+    public void setUtf32()
     {
         setEncoding("UTF-32");
     }
-    void setEncoding(String en)
+    public void setEucKr()
+    {
+        setEncoding("euc-kr");
+    }
+    public void setEncoding(String en)
     {
         encoding = en;
     }
 
 
     //인코딩된 문자열로 반환
-    String toStr()
+    public String toStr()
     {
         try
         {
@@ -90,8 +110,8 @@ public class AwesomeStringConverter
 
         }
         catch(Exception e)
-        {return e.toString();}
-        return "error";
+        {return isDebuggingMode()? e.toString() : ERROR;}
+        return ERROR;
     }
 
 
@@ -156,8 +176,8 @@ public class AwesomeStringConverter
             }
         }
         catch(Exception e)
-        {return e.toString();}
-        return "";
+        {return isDebuggingMode()? e.toString() : ERROR;}
+        return ERROR;
     }
 
 
@@ -214,8 +234,8 @@ public class AwesomeStringConverter
             }
         }
         catch(Exception e)
-        {return e.toString();}
-        return "";
+        {return isDebuggingMode()? e.toString() : ERROR;}
+        return ERROR;
     }
 
 
@@ -271,8 +291,8 @@ public class AwesomeStringConverter
             }
         }
         catch(Exception e)
-        {return e.toString();}
-        return "";
+        {return isDebuggingMode()? e.toString() : ERROR;}
+        return ERROR;
     }
 
     public AwesomeStringConverter fromString(String s)
