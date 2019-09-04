@@ -1,3 +1,5 @@
+package com.myyrakle.awesomeconverter
+
 import java.nio.charset.Charset
 import java.util.*
 import kotlin.text.StringBuilder
@@ -71,65 +73,71 @@ open class AwesomeStringConverter()
         return this
     }
 
-    fun toStr(): String
-    {
-        return when(from)
+    @kotlin.ExperimentalUnsignedTypes
+    fun toStr(): String=
+        when(from)
         {
-            FromStatus.STR->source
+            FromStatus.STR ->source
 
-            FromStatus.BIN, FromStatus.DEC, FromStatus.HEX->
+            FromStatus.BIN, FromStatus.DEC, FromStatus.HEX ->
             {
                 val radix = when(from)
                 {
-                    FromStatus.BIN-> 2
-                    FromStatus.DEC-> 10
-                    FromStatus.HEX-> 16
+                    FromStatus.BIN -> 2
+                    FromStatus.DEC -> 10
+                    FromStatus.HEX -> 16
                     else -> 0
                 }
 
                 var tokenizer = StringTokenizer(source)
                 var bytes = Array<Byte>(tokenizer.countTokens(), {0})
-                var i:Int = 0
+                var i = 0
                 while(tokenizer.hasMoreTokens())
                 {
-                    bytes[i] = tokenizer.nextToken().toByte(radix)
+                    bytes[i] = try {tokenizer.nextToken().toUByte(radix).toByte()} catch(e:Exception) {0.toByte()}
                     i++
                 }
 
                 bytes.toByteArray().toString(encoding)
             }
 
-            FromStatus.NULL-> "null"
+            FromStatus.NULL -> "null"
         }
-    }
 
-    fun toBin(): String
-    {
-        return when(from)
+
+    @kotlin.ExperimentalUnsignedTypes
+    fun toBin(): String=
+        when(from)
         {
-            FromStatus.BIN-> source
+            FromStatus.BIN -> source
 
-            FromStatus.STR->
+            FromStatus.STR ->
             {
                 var builder = StringBuilder(bufferSize)
                 val bytes = source.toByteArray(encoding)
 
                 for(e in bytes)
                 {
-                    builder.
-                        append( String.format("%8s", Integer.toBinaryString(e.toInt())).replace(' ', '0') ).
-                        append(' ')
+                    val formatted =
+                        try
+                        {
+                            String.format("%8s", Integer.toBinaryString(e.toInt().and(0xff))).
+                                replace(' ', '0')
+                        }
+                        catch(e:Exception){"???"}
+
+                    builder.append(formatted).append(' ')
                 }
 
                 builder.toString()
             }
 
-            FromStatus.DEC, FromStatus.HEX->
+            FromStatus.DEC, FromStatus.HEX ->
             {
                 val radix = when(from)
                 {
-                    FromStatus.DEC-> 10
-                    FromStatus.HEX-> 16
+                    FromStatus.DEC -> 10
+                    FromStatus.HEX -> 16
                     else -> 0
                 }
 
@@ -137,23 +145,33 @@ open class AwesomeStringConverter()
                 var builder = StringBuilder()
                 while (tokenizer.hasMoreTokens())
                 {
-                    val byte:Int = tokenizer.nextToken().toByte(radix).toInt()
-                    builder.append(String.format("%8s", Integer.toBinaryString(byte)).replace(' ', '0')).append(' ')
+                    val formatted = try
+                    {
+                        val byte: Int = tokenizer.nextToken().toInt(radix)
+
+                        if(byte > UByte.MAX_VALUE.toInt())
+                            String.format("%s", Integer.toBinaryString(byte))
+                        else
+                            String.format("%8s", Integer.toBinaryString(byte)).replace(' ', '0')
+                    }
+                    catch(e:Exception)
+                    {"???"}
+
+                    builder.append(formatted).append(' ')
                 }
                 builder.toString()
             }
 
-            FromStatus.NULL-> "null"
+            FromStatus.NULL -> "null"
         }
-    }
 
-    fun toDec(): String
-    {
-        return when(from)
+    @kotlin.ExperimentalUnsignedTypes
+    fun toDec(): String=
+        when(from)
         {
-            FromStatus.DEC-> source
+            FromStatus.DEC -> source
 
-            FromStatus.STR->
+            FromStatus.STR ->
             {
                 var builder = StringBuilder(bufferSize)
                 val bytes = source.toByteArray(encoding)
@@ -161,19 +179,19 @@ open class AwesomeStringConverter()
                 for(e in bytes)
                 {
                     builder.
-                        append(e.toString()).
+                        append(e.toUByte().toString()).
                         append(' ')
                 }
 
                 builder.toString()
             }
 
-            FromStatus.BIN, FromStatus.HEX->
+            FromStatus.BIN, FromStatus.HEX ->
             {
                 val radix = when(from)
                 {
-                    FromStatus.BIN-> 2
-                    FromStatus.HEX-> 16
+                    FromStatus.BIN -> 2
+                    FromStatus.HEX -> 16
                     else -> 0
                 }
 
@@ -181,42 +199,51 @@ open class AwesomeStringConverter()
                 var builder = StringBuilder(bufferSize)
                 while (tokenizer.hasMoreTokens())
                 {
-                    builder.append( tokenizer.nextToken().toByte(radix).toString() ).append(' ')
+                    val formatted = try
+                    {
+                        tokenizer.nextToken().toLong(radix).toString()
+                    }
+                    catch(e:Exception)
+                    {"???"}
+
+                    builder.append(formatted).append(' ')
                 }
                 builder.toString()
             }
 
-            FromStatus.NULL-> "null"
+            FromStatus.NULL -> "null"
         }
-    }
 
-    fun toHex(): String
-    {
-        return when(from)
+
+    fun toHex(): String=
+        when(from)
         {
-            FromStatus.HEX-> source
+            FromStatus.HEX -> source
 
-            FromStatus.STR->
+            FromStatus.STR ->
             {
                 var builder = StringBuilder(bufferSize)
                 val bytes = source.toByteArray(encoding)
 
                 for(e in bytes)
                 {
+                    val formatted = try { String.format("%X", e) }
+                    catch(e:Exception) {"???"}
+
                     builder.
-                        append(String.format("%X", e)).
+                        append(formatted).
                         append(' ')
                 }
 
                 builder.toString()
             }
 
-            FromStatus.BIN, FromStatus.DEC->
+            FromStatus.BIN, FromStatus.DEC ->
             {
                 val radix = when(from)
                 {
-                    FromStatus.BIN-> 2
-                    FromStatus.DEC-> 10
+                    FromStatus.BIN -> 2
+                    FromStatus.DEC -> 10
                     else -> 0
                 }
 
@@ -224,12 +251,15 @@ open class AwesomeStringConverter()
                 var builder = StringBuilder(bufferSize)
                 while (tokenizer.hasMoreTokens())
                 {
-                    builder.append( String.format("%02X", tokenizer.nextToken().toByte(radix)) ).append(' ')
+                    val formatted = try{
+                        String.format("%02X", tokenizer.nextToken().toLong(radix))
+                    }
+                    catch(e:Exception) { "???" }
+                    builder.append( formatted ).append(' ')
                 }
                 builder.toString()
             }
 
-            FromStatus.NULL-> "null"
+            FromStatus.NULL -> "null"
         }
-    }
 }
